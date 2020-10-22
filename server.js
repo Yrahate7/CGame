@@ -93,45 +93,47 @@ app.post("/adduser", function (req, res) {
     if (sendData) {
         try {
 
-            dbClient.connect(DBUrl, function (err, db) {
+            dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
                 if (err) throw err;
 
                 var dbo = db.db("CGame");
-                db.close();
                 phone = user.phoneNumber;
                 dbo.collection("users").find({ phoneNumber: phone }).toArray(function (err, result) {
                     // if cannot find user collection
                     if (err) {
-                        db.close();
+                        // db.close();
+                        console.log(err);
                         res.json({ status: "Cannot find the collection named users" });
                     }
                     else {
                         // if no error
-                        if (result) {
-                            dbo.collection("users").insertOne(user, function (err, res) {
+                        if (result === []) {
+                            console.log(result);
+                            dbo.collection("users").insertOne(user, function (err, response) {
                                 if (err) {
-                                    res.json({ status: "Failed to create user" });
+                                    console.log(err);
+                                    res.json({ status: "Failed to create user, Already exists" });
                                 }
                                 else {
-                                    res.json({ status: "Success" })
+                                    res.json({ status: "Success" });
+                                    console.log("Doc created");
                                 }
-                                console.log("Doc created");
-                                db.close();
+
+                                // db.close();
                             });
                         } else {
                             res.json({ status: "User already exists" });
                         }
-                        db.close();
+                        // db.close();
                     }
                 });
+                // db.close();
 
             });
         } catch (error) {
-
-            res.json({ status: "Error" })
+            res.json({ status: "Error" });
         }
     } else {
-
         res.json(errorLog);
     }
 
