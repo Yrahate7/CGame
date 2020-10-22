@@ -16,6 +16,7 @@ var UserSchema = new Schema({
     phoneNumber: {
         type: Number,
         required: true,
+        unique: true,
     },
     email: {
         type: String,
@@ -50,7 +51,7 @@ var User = mongoose.model("users", UserSchema, "users");
 // Export model
 module.exports = User;
 
-// Some letter shold be caps
+// Some letter should be caps
 // more than 6 character 
 // 1 num, 1 Special 
 // 
