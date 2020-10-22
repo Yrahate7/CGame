@@ -5,7 +5,11 @@ const Schema = mongoose.Schema;
 
 // Using Schema constructor, create a UserSchema
 var UserSchema = new Schema({
-    name: {
+    firstName: {
+        type: String,
+        required: true
+    },
+    lastName: {
         type: String,
         required: true
     },
@@ -45,3 +49,8 @@ var User = mongoose.model("users", UserSchema, "users");
 
 // Export model
 module.exports = User;
+
+// Some letter shold be caps
+// more than 6 character 
+// 1 num, 1 Special 
+// 
