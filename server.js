@@ -131,7 +131,7 @@ app.post("/adduser", function (req, res) {
 
             });
         } catch (error) {
-            res.json({ status: "Error" });
+            res.json({ status: "Error in connecting to db" });
         }
     } else {
         res.json(errorLog);
