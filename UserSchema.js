@@ -1,60 +1,60 @@
-const { match } = require("assert");
-var mongoose = require("mongoose");
+// const { match } = require("assert");
+// var mongoose = require("mongoose");
 
-// Get the Schema constructor
-const Schema = mongoose.Schema;
+// // Get the Schema constructor
+// const Schema = mongoose.Schema;
 
-// Using Schema constructor, create a UserSchema
-var UserSchema = new Schema({
-    firstName: {
-        type: String,
-        required: true,
-        match: /^[a-zA-Z]+$/
-    },
-    lastName: {
-        type: String,
-        required: true,
-        match: /^[a-zA-Z]+$/
-    },
-    phoneNumber: {
-        type: Number,
-        required: true,
-        unique: true,
-        minlength: 4
-    },
-    email: {
-        type: String,
-        required: false,
-        match: /\S+@\S+\.\S+/
-    },
-    gender: {
-        type: String,
-        enum: ['Male', 'Female'],
-        required: true
-    },
-    city: {
-        type: String,
-        required: true
-    },
-    country: {
-        type: String,
-        required: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6,
-        match: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/
+// // Using Schema constructor, create a UserSchema
+// var UserSchema = new Schema({
+//     firstName: {
+//         type: String,
+//         required: true,
+//         match: /^[a-zA-Z]+$/
+//     },
+//     lastName: {
+//         type: String,
+//         required: true,
+//         match: /^[a-zA-Z]+$/
+//     },
+//     phoneNumber: {
+//         type: Number,
+//         required: true,
+//         unique: true,
+//         minlength: 4
+//     },
+//     email: {
+//         type: String,
+//         required: false,
+//         match: /\S+@\S+\.\S+/
+//     },
+//     gender: {
+//         type: String,
+//         enum: ['Male', 'Female'],
+//         required: true
+//     },
+//     city: {
+//         type: String,
+//         required: true
+//     },
+//     country: {
+//         type: String,
+//         required: true
+//     },
+//     password: {
+//         type: String,
+//         required: true,
+//         minlength: 6,
+//         match: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/
 
-    },
-    alias: {
-        type: String,
-        required: false
-    },
-}, { versionKey: false });
+//     },
+//     alias: {
+//         type: String,
+//         required: false
+//     },
+// }, { versionKey: false });
 
-// Create model from the schema
-var User = mongoose.model("users", UserSchema, "users");
+// // Create model from the schema
+// var User = mongoose.model("users", UserSchema, "users");
 
-// Export model
-module.exports = User;
+// // Export model
+// module.exports = User;
