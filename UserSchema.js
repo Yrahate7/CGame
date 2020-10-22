@@ -1,3 +1,4 @@
+const { match } = require("assert");
 var mongoose = require("mongoose");
 
 // Get the Schema constructor
@@ -41,7 +42,8 @@ var UserSchema = new Schema({
     password: {
         type: String,
         required: true,
-        minlength: 6
+        minlength: 6,
+        match: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/
 
     },
     alias: {
@@ -55,7 +57,3 @@ var User = mongoose.model("users", UserSchema, "users");
 
 // Export model
 module.exports = User;
-
-// Some letter should be caps
-// 1 num, 1 Special 
-// 
