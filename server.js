@@ -16,6 +16,7 @@ const DBUrl = "mongodb://localhost:27017/CGame";
 mongoose.connect(DBUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.get("/fetchusers", function (req, res) {
+    // find all users and send them back to the client
     Users.find({})
         .then(function (dbResult) {
             res.json(dbResult);
@@ -25,7 +26,7 @@ app.get("/fetchusers", function (req, res) {
         })
 });
 
-// Route for creating a new Product
+// Route for creating a new User
 app.post("/adduser", function (req, res) {
     Users.create(req.body)
         .then(function (dbResult) {

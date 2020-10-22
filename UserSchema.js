@@ -7,11 +7,13 @@ const Schema = mongoose.Schema;
 var UserSchema = new Schema({
     firstName: {
         type: String,
-        required: true
+        required: true,
+        validate: /[a-z]/
     },
     lastName: {
         type: String,
-        required: true
+        required: true,
+        match: /[a-z]/
     },
     phoneNumber: {
         type: Number,
@@ -20,11 +22,12 @@ var UserSchema = new Schema({
     },
     email: {
         type: String,
-        required: false
+        required: false,
+        match: /\S+@\S+\.\S+/
     },
     gender: {
-        // 1 for female, 0 for male
-        type: Boolean,
+        type: String,
+        enum: ['Male', 'Female'],
         required: true
     },
     city: {
@@ -37,7 +40,9 @@ var UserSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        minlength: 6
+
     },
     alias: {
         type: String,
@@ -52,6 +57,5 @@ var User = mongoose.model("users", UserSchema, "users");
 module.exports = User;
 
 // Some letter should be caps
-// more than 6 character 
 // 1 num, 1 Special 
 // 
