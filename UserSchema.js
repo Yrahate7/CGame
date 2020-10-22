@@ -9,17 +9,18 @@ var UserSchema = new Schema({
     firstName: {
         type: String,
         required: true,
-        validate: /[a-z]/
+        match: /^[a-zA-Z]+$/
     },
     lastName: {
         type: String,
         required: true,
-        match: /[a-z]/
+        match: /^[a-zA-Z]+$/
     },
     phoneNumber: {
         type: Number,
         required: true,
         unique: true,
+        minlength: 4
     },
     email: {
         type: String,
