@@ -107,12 +107,12 @@ app.post("/adduser", function (req, res) {
                     }
                     else {
                         // if no error
-                        if (result === []) {
+                        if (result.length == 0) {
                             console.log(result);
                             dbo.collection("users").insertOne(user, function (err, response) {
                                 if (err) {
                                     console.log(err);
-                                    res.json({ status: "Failed to create user, Already exists" });
+                                    res.json({ status: err });
                                 }
                                 else {
                                     res.json({ status: "Success" });
