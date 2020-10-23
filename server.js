@@ -239,6 +239,81 @@ app.post("/adduser", function (req, res) {
 });
 
 
+app.post("/addAdmin", function (req, res) {
+
+    // Request body already comes in raw json. no need to parse it
+    user = req.body;
+    // Call method called validate which will validate user
+    // use result of this method to determine actions to be taken
+    validationResult = validate(this.user);
+
+    if (validationResult.sendData) {
+        try {
+
+            dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
+                if (err) throw err;
+
+                var dbo = db.db("CGame");
+                phone = user.phoneNumber;
+                dbo.collection("users").find({ phoneNumber: phone }).toArray(function (err, result) {
+                    // if cannot find user collection
+                    if (err) {
+                        // db.close();
+                        console.log(err);
+                        res.json({
+                            status: "Failed",
+                            message: "Cannot find the collection named users"
+                        });
+                        db.close();
+                    }
+                    else {
+                        // if no error
+                        if (result.length == 0) {
+                            user["Role"] = "Admin";
+                            dbo.collection("users").insertOne(user, function (err, response) {
+                                // for uncertain errors 
+                                if (err) {
+                                    console.log(err);
+                                    res.json({
+                                        status: "Failed",
+                                        message: err
+                                    });
+                                    db.close();
+                                }
+                                else {
+                                    res.json({ status: "Success" });
+                                    db.close();
+                                }
+                            });
+                        } else {
+                            res.json({
+                                status: "Failed",
+                                message: "User already exists"
+                            });
+                            db.close();
+                        }
+
+                    }
+                });
+
+
+            });
+        } catch (error) {
+            res.json({
+                status: "Failed",
+                message: "Error in connecting to db"
+            });
+        }
+    } else {
+        res.json({
+            status: "Failed",
+            message: "Check Error log",
+            errorLog: validationResult.errorLog
+        });
+    }
+
+});
+
 const port = 3000
 app.listen(port, '0.0.0.0', () => {
     console.log(`Listening at http://localhost:${port}`)
