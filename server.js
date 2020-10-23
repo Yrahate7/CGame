@@ -24,7 +24,70 @@ const isFemale = /^Female$/;
 //Database URL
 const DBUrl = "mongodb://localhost:27017/CGame";
 
-/// Route for getting jwt token
+//// Method for validation
+validate = (user) => {
+    // array to hold error logs
+    var errorLog = [];
+
+    // flag variable to determine whether to send data or not
+    var sendData = true;
+
+    // if name pattern doesnt match firstname
+    if (!namePattern.test(user.firstName)) {
+        errorLog.push({ firstName: "failed" });
+        sendData = false;
+    }
+
+    // if name pattern doesnt match lastName
+    if (!namePattern.test(user.lastName)) {
+        sendData = false;
+        errorLog.push({ lastName: "failed" });
+    }
+
+    // if emailpattern doesnt match email
+    if (!emailPattern.test(user.email)) {
+        errorLog.push({ email: "failed" });
+    }
+
+    // if password pattern doesnt match Password
+    if (!passwordPattern.test(user.password)) {
+        sendData = false;
+        errorLog.push({ password: "failed" });
+    }
+
+    // if emptyString pattern doesnt match City
+    if (!emptyString.test(user.city)) {
+        sendData = false;
+        errorLog.push({ city: "failed" });
+    }
+
+    // if emptyString pattern doesnt match Country
+    if (!emptyString.test(user.country)) {
+        sendData = false;
+        errorLog.push({ country: "failed" });
+    }
+
+    // if not male or female 
+    if (!isMale.test(user.gender) && !isFemale.test(user.gender)) {
+        sendData = false;
+        errorLog.push({ gender: "failed" });
+    }
+
+    // Phone Number must be passed as string
+    // otherwise it will be successfully passed without validation
+    // #TODO check whether phoneNumber is a string or not
+    if (user.phoneNumber.length < 4) {
+        sendData = false;
+        errorLog.push({ phoneNumber: "failed" });
+    }
+
+    validationResult = { sendData: sendData, errorLog: errorLog };
+
+    return validationResult;
+
+}
+
+/// Route for getting jwt token for user
 app.post("/login", (req, res) => {
     let user = req.body;
     try {
@@ -98,69 +161,86 @@ app.post("/login", (req, res) => {
     }
 });
 
+
+/// Route for getting jwt token for Admin
+app.post("/adminlogin", (req, res) => {
+    let user = req.body;
+    try {
+
+        dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
+            if (err) throw err;
+            var dbo = db.db("CGame");
+
+            try {
+                let phoneFromReq = user.phoneNumber;
+                let passFromReq = user.password;
+
+                dbo.collection("users").find({ phoneNumber: phoneFromReq, role: "Admin" }).toArray(function (err, result) {
+                    // if cannot find user collection
+                    if (err) {
+                        // db.close();
+                        console.log(err);
+                        res.json({
+                            status: "Failed",
+                            message: "Cannot find the collection named users"
+                        });
+                        db.close();
+                    }
+                    else {
+                        // double checking
+                        if (result.length != 0) {
+                            // only check result if we can find an entry in database 
+                            if (result[0].phoneNumber === phoneFromReq) {
+                                let dbPassword = result[0].password;
+                                if (passFromReq === dbPassword) {
+                                    // Generate jwt and send it back
+                                    let token = jwt.sign({ phoneNumber: phoneFromReq },
+                                        config.secret,
+                                        {
+                                            expiresIn: '24h' // expires in 24 hours
+                                        }
+                                    );
+
+                                    res.json({
+                                        status: "Success",
+                                        message: 'Authentication successful!',
+                                        token: token
+                                    });
+                                    db.close();
+                                }
+                                else {
+                                    // forbidden , Wrong password
+                                    res.sendStatus(403);
+                                    db.close();
+                                }
+                            }
+                        }
+                        else {
+                            res.json({
+                                status: "Failed",
+                                message: "Invalid UserName"
+                            });
+                            db.close();
+                        }
+                    }
+                });
+            } catch (error) {
+                // Check auth request
+                res.sendStatus(400);
+                db.close();
+            }
+
+        });
+    } catch (error) {
+        res.json({ status: "Error in connecting to db" });
+    }
+});
+
+
+
 app.get("/", middleware.checkToken, (req, res) => {
     res.json({ status: "Success" });
 });
-
-validate = (user) => {
-    // array to hold error logs
-    var errorLog = [];
-
-    // flag variable to determine whether to send data or not
-    var sendData = true;
-
-    // if name pattern doesnt match firstname
-    if (!namePattern.test(user.firstName)) {
-        errorLog.push({ firstName: "failed" });
-        sendData = false;
-    }
-
-    // if name pattern doesnt match lastName
-    if (!namePattern.test(user.lastName)) {
-        sendData = false;
-        errorLog.push({ lastName: "failed" });
-    }
-
-    // if emailpattern doesnt match email
-    if (!emailPattern.test(user.email)) {
-        errorLog.push({ email: "failed" });
-    }
-
-    // if password pattern doesnt match Password
-    if (!passwordPattern.test(user.password)) {
-        sendData = false;
-        errorLog.push({ password: "failed" });
-    }
-
-    // if emptyString pattern doesnt match City
-    if (!emptyString.test(user.city)) {
-        sendData = false;
-        errorLog.push({ city: "failed" });
-    }
-
-    // if emptyString pattern doesnt match Country
-    if (!emptyString.test(user.country)) {
-        sendData = false;
-        errorLog.push({ country: "failed" });
-    }
-
-    // if not male or female 
-    if (!isMale.test(user.gender) && !isFemale.test(user.gender)) {
-        sendData = false;
-        errorLog.push({ gender: "failed" });
-    }
-
-    // if phoneNumber pattern doesnt match phoneNumber
-    if (user.phoneNumber.length < 4) {
-        sendData = false;
-        errorLog.push({ phoneNumber: "failed" });
-    }
-
-    validationResult = { sendData: sendData, errorLog: errorLog };
-
-    return validationResult;
-
-}
 
 // Route for creating a new User
 app.post("/adduser", function (req, res) {
@@ -171,7 +251,7 @@ app.post("/adduser", function (req, res) {
     // use result of this method to determine actions to be taken
     validationResult = validate(this.user);
 
-    if (validationResult.sendData) {
+    if (validationResult.sendData === true) {
         try {
 
             dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
@@ -243,11 +323,11 @@ app.post("/addAdmin", function (req, res) {
 
     // Request body already comes in raw json. no need to parse it
     user = req.body;
-    // Call method called validate which will validate user
+    // Call method called validate which will validate user 
     // use result of this method to determine actions to be taken
     validationResult = validate(this.user);
 
-    if (validationResult.sendData) {
+    if (validationResult.sendData === true) {
         try {
 
             dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
@@ -269,7 +349,7 @@ app.post("/addAdmin", function (req, res) {
                     else {
                         // if no error
                         if (result.length == 0) {
-                            user["Role"] = "Admin";
+                            user["role"] = "Admin";
                             dbo.collection("users").insertOne(user, function (err, response) {
                                 // for uncertain errors 
                                 if (err) {
