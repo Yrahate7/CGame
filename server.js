@@ -119,7 +119,7 @@ app.post("/login", (req, res) => {
                                 let dbPassword = result[0].password;
                                 if (passFromReq === dbPassword) {
                                     // Generate jwt and send it back
-                                    let token = jwt.sign({ phoneNumber: phoneFromReq },
+                                    let token = jwt.sign({ phoneNumber: phoneFromReq, role: result[0].role },
                                         config.secret,
                                         {
                                             expiresIn: '24h' // expires in 24 hours
@@ -194,7 +194,7 @@ app.post("/adminlogin", (req, res) => {
                                 let dbPassword = result[0].password;
                                 if (passFromReq === dbPassword) {
                                     // Generate jwt and send it back
-                                    let token = jwt.sign({ phoneNumber: phoneFromReq },
+                                    let token = jwt.sign({ phoneNumber: phoneFromReq, role: result[0].role },
                                         config.secret,
                                         {
                                             expiresIn: '24h' // expires in 24 hours
@@ -242,6 +242,10 @@ app.get("/", middleware.checkToken, (req, res) => {
     res.json({ status: "Success" });
 });
 
+app.get("/admin", middleware.checkAdminToken, (req, res) => {
+    res.json({ status: "Success" });
+});
+
 // Route for creating a new User
 app.post("/adduser", function (req, res) {
 
@@ -273,7 +277,7 @@ app.post("/adduser", function (req, res) {
                     else {
                         // if no error
                         if (result.length == 0) {
-                            user["Role"] = "User";
+                            user["role"] = "User";
                             dbo.collection("users").insertOne(user, function (err, response) {
                                 // for uncertain errors 
                                 if (err) {
