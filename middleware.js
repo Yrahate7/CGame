@@ -20,7 +20,6 @@ let checkToken = (req, res, next) => {
             } else {
                 // if token is valid
                 req.decoded = decoded;
-                console.log(decoded);
                 next();
             }
         });
@@ -51,8 +50,14 @@ let checkAdminToken = (req, res, next) => {
             } else {
                 // if token is valid
                 req.decoded = decoded;
-                console.log(decoded);
-                next();
+                if (decoded.role === 'Admin') {
+                    next();
+                } else {
+                    res.json({
+                        status: "Failed",
+                        message: 'Token is not valid, User type Invalid'
+                    });
+                }
             }
         });
     } else {
