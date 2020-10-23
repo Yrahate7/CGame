@@ -195,7 +195,7 @@ app.post("/adminlogin", (req, res) => {
                                 if (passFromReq === dbPassword) {
                                     // Generate jwt and send it back
                                     let token = jwt.sign({ phoneNumber: phoneFromReq },
-                                        config.secret,
+                                        config.adminSecret,
                                         {
                                             expiresIn: '24h' // expires in 24 hours
                                         }
@@ -237,7 +237,7 @@ app.post("/adminlogin", (req, res) => {
 });
 
 
-
+// Use appropriate middleware functions for different types of login
 app.get("/", middleware.checkToken, (req, res) => {
     res.json({ status: "Success" });
 });
