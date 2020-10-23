@@ -12,6 +12,8 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+
+///// Regex for matching /////
 const namePattern = /^[a-zA-Z]+$/;
 const emailPattern = /\S+@\S+\.\S+/;
 const passwordPattern = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/;
@@ -22,6 +24,7 @@ const isFemale = /^Female$/;
 //Database URL
 const DBUrl = "mongodb://localhost:27017/CGame";
 
+/// Route for getting jwt token
 app.post("/login", (req, res) => {
     let user = req.body;
     try {
@@ -99,16 +102,12 @@ app.get("/", middleware.checkToken, (req, res) => {
     res.json({ status: "Success" });
 });
 
-// Route for creating a new User
-app.post("/adduser", function (req, res) {
-
+validate = (user) => {
     // array to hold error logs
     var errorLog = [];
 
+    // flag variable to determine whether to send data or not
     var sendData = true;
-
-    // Request body already comes in raw json. no need to parse it
-    user = req.body;
 
     // if name pattern doesnt match firstname
     if (!namePattern.test(user.firstName)) {
@@ -157,7 +156,22 @@ app.post("/adduser", function (req, res) {
         errorLog.push({ phoneNumber: "failed" });
     }
 
-    if (sendData) {
+    validationResult = { sendData: sendData, errorLog: errorLog };
+
+    return validationResult;
+
+}
+
+// Route for creating a new User
+app.post("/adduser", function (req, res) {
+
+    // Request body already comes in raw json. no need to parse it
+    user = req.body;
+    // Call method called validate which will validate user
+    // use result of this method to determine actions to be taken
+    validationResult = validate(this.user);
+
+    if (validationResult.sendData) {
         try {
 
             dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
@@ -218,7 +232,7 @@ app.post("/adduser", function (req, res) {
         res.json({
             status: "Failed",
             message: "Check Error log",
-            errorLog: errorLog
+            errorLog: validationResult.errorLog
         });
     }
 
