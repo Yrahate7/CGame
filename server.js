@@ -33,50 +33,48 @@ validate = (user) => {
     var sendData = true;
 
     // if name pattern doesnt match firstname
-    if (!namePattern.test(user.firstName)) {
+    if ((!namePattern.test(user.firstName)) || (typeof user.firstName !== "string")) {
         errorLog.push({ firstName: "failed" });
         sendData = false;
     }
 
     // if name pattern doesnt match lastName
-    if (!namePattern.test(user.lastName)) {
+    if ((!namePattern.test(user.lastName)) || (typeof user.lastName !== "string")) {
         sendData = false;
         errorLog.push({ lastName: "failed" });
     }
 
     // if emailpattern doesnt match email
-    if (!emailPattern.test(user.email)) {
+    if ((!emailPattern.test(user.email)) || (typeof user.email !== "string")) {
         errorLog.push({ email: "failed" });
     }
 
     // if password pattern doesnt match Password
-    if (!passwordPattern.test(user.password)) {
+    if ((!passwordPattern.test(user.password)) || (typeof user.password !== "string")) {
         sendData = false;
         errorLog.push({ password: "failed" });
     }
 
     // if emptyString pattern doesnt match City
-    if (!emptyString.test(user.city)) {
+    if ((!emptyString.test(user.city)) || (typeof user.city !== "string")) {
         sendData = false;
         errorLog.push({ city: "failed" });
     }
 
     // if emptyString pattern doesnt match Country
-    if (!emptyString.test(user.country)) {
+    if ((!emptyString.test(user.country)) || (typeof user.country !== "string")) {
         sendData = false;
         errorLog.push({ country: "failed" });
     }
 
     // if not male or female 
-    if (!isMale.test(user.gender) && !isFemale.test(user.gender)) {
+    if (((!isMale.test(user.gender)) && (!isFemale.test(user.gender))) || (typeof user.gender !== "string")) {
         sendData = false;
         errorLog.push({ gender: "failed" });
     }
 
-    // Phone Number must be passed as string
-    // otherwise it will be successfully passed without validation
-    // #TODO check whether phoneNumber is a string or not
-    if (user.phoneNumber.length < 4) {
+    // Phone Number must be passed as string, otherwise we are failing test conditions
+    if ((user.phoneNumber.length < 4) || (typeof user.phoneNumber !== "string")) {
         sendData = false;
         errorLog.push({ phoneNumber: "failed" });
     }
