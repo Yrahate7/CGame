@@ -2,11 +2,14 @@ const express = require('express');
 const bodyParser = require("body-parser");
 var cors = require('cors');
 var dbClient = require('mongodb').MongoClient;
+let jwt = require('jsonwebtoken');
+let config = require('./config');
+let middleware = require('./middleware');
+
 const app = express();
 
-
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const namePattern = /^[a-zA-Z]+$/;
@@ -19,18 +22,82 @@ const isFemale = /^Female$/;
 //Database URL
 const DBUrl = "mongodb://localhost:27017/CGame";
 
+app.post("/login", (req, res) => {
+    let user = req.body;
+    try {
 
+        dbClient.connect(DBUrl, { useUnifiedTopology: true, useNewUrlParser: true }, function (err, db) {
+            if (err) throw err;
+            var dbo = db.db("CGame");
 
-// app.get("/fetchusers", function (req, res) {
-//     // find all users and send them back to the client
-//     Users.find({})
-//         .then(function (dbResult) {
-//             res.json(dbResult);
-//         })
-//         .catch(function (err) {
-//             res.json(err);
-//         })
-// });
+            try {
+                let phoneFromReq = user.phoneNumber;
+                let passFromReq = user.password;
+
+                dbo.collection("users").find({ phoneNumber: phoneFromReq }).toArray(function (err, result) {
+                    // if cannot find user collection
+                    if (err) {
+                        // db.close();
+                        console.log(err);
+                        res.json({
+                            status: "Failed",
+                            message: "Cannot find the collection named users"
+                        });
+                        db.close();
+                    }
+                    else {
+                        // double checking
+                        if (result.length != 0) {
+                            // only check result if we can find an entry in database 
+                            if (result[0].phoneNumber === phoneFromReq) {
+                                let dbPassword = result[0].password;
+                                if (passFromReq === dbPassword) {
+                                    // Generate jwt and send it back
+                                    let token = jwt.sign({ phoneNumber: phoneFromReq },
+                                        config.secret,
+                                        {
+                                            expiresIn: '24h' // expires in 24 hours
+                                        }
+                                    );
+
+                                    res.json({
+                                        status: "Success",
+                                        message: 'Authentication successful!',
+                                        token: token
+                                    });
+                                    db.close();
+                                }
+                                else {
+                                    // forbidden , Wrong password
+                                    res.sendStatus(403);
+                                    db.close();
+                                }
+                            }
+                        }
+                        else {
+                            res.json({
+                                status: "Failed",
+                                message: "Invalid UserName"
+                            });
+                            db.close();
+                        }
+                    }
+                });
+            } catch (error) {
+                // Check auth request
+                res.sendStatus(400);
+                db.close();
+            }
+
+        });
+    } catch (error) {
+        res.json({ status: "Error in connecting to db" });
+    }
+});
+
+app.get("/", middleware.checkToken, (req, res) => {
+    res.json({ status: "Success" });
+});
 
 // Route for creating a new User
 app.post("/adduser", function (req, res) {
@@ -103,38 +170,56 @@ app.post("/adduser", function (req, res) {
                     if (err) {
                         // db.close();
                         console.log(err);
-                        res.json({ status: "Cannot find the collection named users" });
+                        res.json({
+                            status: "Failed",
+                            message: "Cannot find the collection named users"
+                        });
+                        db.close();
                     }
                     else {
                         // if no error
                         if (result.length == 0) {
-                            console.log(result);
+
                             dbo.collection("users").insertOne(user, function (err, response) {
+                                // for uncertain errors 
                                 if (err) {
                                     console.log(err);
-                                    res.json({ status: err });
+                                    res.json({
+                                        status: "Failed",
+                                        message: err
+                                    });
+                                    db.close();
                                 }
                                 else {
                                     res.json({ status: "Success" });
-                                    console.log("Doc created");
+                                    db.close();
                                 }
-
-                                // db.close();
                             });
                         } else {
-                            res.json({ status: "User already exists" });
+                            res.json({
+                                status: "Failed",
+                                message: "User already exists"
+                            });
+                            db.close();
                         }
-                        // db.close();
+
                     }
                 });
-                // db.close();
+
 
             });
         } catch (error) {
-            res.json({ status: "Error in connecting to db" });
+            res.json({
+                status: "Failed",
+                message: "Error in connecting to db"
+            });
         }
     } else {
-        res.json(errorLog);
+        res.json({
+            status: "Failed",
+            message: "Check Error log",
+            errorLog: errorLog
+        });
     }
 
 });
