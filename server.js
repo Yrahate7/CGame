@@ -193,7 +193,7 @@ app.post("/adduser", function (req, res) {
                     else {
                         // if no error
                         if (result.length == 0) {
-
+                            user["Role"] = "User";
                             dbo.collection("users").insertOne(user, function (err, response) {
                                 // for uncertain errors 
                                 if (err) {
