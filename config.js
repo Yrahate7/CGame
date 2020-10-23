@@ -1,4 +1,3 @@
 module.exports = {
-    secret: 'CGame_SecretKey',
-    adminSecret: 'adminSecret'
+    secret: 'CGame_SecretKey'
 };
